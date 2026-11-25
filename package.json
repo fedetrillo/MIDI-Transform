@@ -1,7 +1,7 @@
 {
   "name": "miditransform",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "MIDI Transform, a LUNA Add On by Fede Trillo",
   "scripts": { "serve": "ua-builder serve", "pack": "ua-builder pack" },

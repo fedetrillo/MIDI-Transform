@@ -1,8 +1,8 @@
 # MIDI Transform for LUNA
 
-Quantize, humanize, velocity, length, pitch and time tools for the MIDI notes you select in
-LUNA, with a before and after preview. Pick a tool, adjust it while you watch the preview, and
-press Apply: one undo step, and the notes stay selected for the next tool.
+Quantize, groove, humanize, strum, velocity, length, pitch, chop and time tools for the MIDI
+notes you select in LUNA, with a before and after preview. Pick a tool, adjust it while you
+watch the preview, and press Apply: one undo step, and the notes stay selected for the next tool.
 
 <p>
   <img src="docs/screenshot-dark.png" alt="MIDI Transform, dark theme" width="460">
@@ -18,15 +18,25 @@ press Apply: one undo step, and the notes stay selected for the next tool.
   keeps part of the feel, swing pushes every other step, catch only pulls notes that are already
   close, the free zone leaves notes that are close enough alone, and note ends can be quantized
   too.
+- **Groove:** give the notes a feel: MPC swing (50–75%), shuffle, funk 16, house, push or laid
+  back, on 1/8 or 1/16, with how much to quantize first and how much of the template's timing
+  and accents to apply. **Mine** captures the feel of notes you select (their push, drag and
+  accents) and applies it to others, like a groove pool.
 - **Humanize:** small random changes to timing (in milliseconds, following the tempo),
   velocity and length. Notes of a chord move together. Roll again for another take.
+- **Strum:** the notes of each chord start one after another, like a strummed guitar: low to
+  high, high to low or alternating, with the spread in milliseconds, a curve and a velocity fade.
 - **Velocity:** squeeze or spread the dynamics around their average and add an offset, set a
   fixed value, or draw a crescendo or decrescendo with a curve.
 - **Length:** legato (each note lasts until the next one starts, with an optional gap), a fixed
   length, or a percentage.
 - **Pitch:** transpose by semitones and octaves; force the notes to a scale (major, minor,
   harmonic minor, dorian, mixolydian, both pentatonics, blues), with the key read from LUNA;
-  or invert the melody around its lowest note, its centre or its highest note.
+  invert the melody around its lowest note, its centre or its highest note; or fit the notes
+  into a range by moving them in octaves.
+- **Chop:** split notes into repeats of a grid step for rolls and stutters (gate and velocity
+  fade); add one to four grace notes before each note (flam, ruff); or glue repeated notes of
+  the same pitch into one.
 - **Time:** reverse, double speed, half speed or shift by grid steps. When notes need more room,
   the clip grows up to the next bar line if the lane is free.
 - **Before and after:** a small piano roll shows the original notes outlined and the result in
@@ -55,8 +65,9 @@ choose **Add Ons > Windows > MIDI Transform**.
 
 ## En español
 
-Herramientas para las notas MIDI que seleccionas en LUNA: cuantizar, humanizar, velocidad,
-duración, altura y tiempo, con vista previa de antes y después. Cada Aplicar es un solo paso de
+Herramientas para las notas MIDI que seleccionas en LUNA: cuantizar, groove (swing MPC,
+plantillas y captura de tu propio groove), humanizar, rasgueo, velocidad, duración, altura,
+trocear (redobles, flams y unir notas) y tiempo, con vista previa de antes y después. Cada Aplicar es un solo paso de
 deshacer y las notas siguen seleccionadas para la siguiente herramienta. Modo oscuro y gris,
 siete colores, 7 idiomas.
 

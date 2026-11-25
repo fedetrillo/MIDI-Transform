@@ -160,6 +160,14 @@
         return { ...n, pitch: clamp(p, 0, 127) };
       });
     }
+    if (o.mode === 'limit') {
+      const lo = clamp(Math.min(o.low ?? 36, o.high ?? 84), 0, 127), hi = clamp(Math.max(o.low ?? 36, o.high ?? 84), 0, 127);
+      return notes.map((n) => {
+        let p = n.pitch;
+        if (hi - lo >= 11) { while (p < lo) p += 12; while (p > hi) p -= 12; }
+        return { ...n, pitch: clamp(p, lo, hi) };
+      });
+    }
     const st = Math.round((o.semis ?? 0) + 12 * (o.octaves ?? 0));
     return notes.map((n) => ({ ...n, pitch: clamp(n.pitch + st, 0, 127) }));
   }
@@ -176,7 +184,141 @@
     return notes.map((n) => ({ ...n, start: Math.max(0, n.start + by), stop: Math.max(0, n.start + by) + (n.stop - n.start) }));
   }
 
-  const apply = (kind, notes, o) => ({ quantize, humanize, velocity, length, pitch, time })[kind](notes, o);
+  // ---- Groove -----------------------------------------------------------------------------------
+  // A template gives every step of a bar (16 sixteenths, or 8 eighths) a timing offset, as a share
+  // of a step (+ late, - early), and a velocity factor. The bar is 4 beats from tick 0.
+  const GROOVES = {
+    mpc: (s, n, o) => ({ t: s % 2 ? ((o.swing ?? 62) - 50) / 50 : 0, v: s % 2 ? 0.9 : 1 }),
+    shuffle: (s) => ({ t: s % 2 ? 1 / 3 : 0, v: s % 2 ? 0.85 : (s % 4 === 0 ? 1.08 : 1) }),
+    funk: (s, n) => ({ t: s % 2 ? 0.14 : 0, v: [1.15, 0.7, 0.9, 0.75][(s * (16 / n)) % 4] ?? 1 }),
+    house: (s, n) => { const k = (s * (16 / n)) % 4; return { t: k % 2 ? 0.08 : 0, v: k === 2 ? 1.15 : k === 0 ? 1 : 0.8 }; },
+    push: (s) => ({ t: s % 2 ? -0.12 : 0, v: s % 2 ? 1.1 : 0.95 }),
+    laid: (s, n) => { const beat = n / 4, back = s === beat || s === beat * 3; return { t: back ? 0.18 : s % 2 ? 0.1 : s === 0 ? 0 : 0.05, v: back ? 1.1 : 1 }; },
+  };
+  const stepsFor = (grid) => (grid === '1/8' ? 8 : 16);
+  function grooveStep(o, s, n) {
+    if (o.template === 'mine') {
+      const c = o.custom;
+      if (!c || !c.t?.length) return { t: 0, v: 1 };
+      const i = Math.floor((s / n) * c.t.length) % c.t.length;
+      return { t: c.t[i] ?? 0, v: c.v[i] ?? 1 };
+    }
+    return (GROOVES[o.template] ?? GROOVES.mpc)(s, n, o);
+  }
+  function groove(notes, o) {
+    const g = gridTicks(o.grid ?? '1/16', 'n'), n = stepsFor(o.grid);
+    const q = clamp(o.quant ?? 100, 0, 100) / 100, kt = clamp(o.timing ?? 100, 0, 150) / 100, kv = clamp(o.vel ?? 0, 0, 150) / 100;
+    return notes.map((x) => {
+      const k = Math.round(x.start / g), s = ((k % n) + n) % n;
+      const st = grooveStep(o, s, n);
+      const len = x.stop - x.start;
+      const start = Math.max(0, Math.round(x.start + (k * g - x.start) * q + st.t * g * kt));
+      const velocity = clamp(Math.round(x.velocity * (1 + (st.v - 1) * kv)), 1, 127);
+      return { ...x, start, stop: start + len, velocity };
+    });
+  }
+  // The feel of some notes, as a template: each step's average offset from the straight grid and
+  // its average velocity against the whole.
+  function captureGroove(notes, grid) {
+    const g = gridTicks(grid ?? '1/16', 'n'), n = stepsFor(grid);
+    const sumT = new Array(n).fill(0), sumV = new Array(n).fill(0), cnt = new Array(n).fill(0);
+    let all = 0;
+    for (const x of notes) {
+      const k = Math.round(x.start / g), s = ((k % n) + n) % n;
+      sumT[s] += (x.start - k * g) / g; sumV[s] += x.velocity; cnt[s]++; all += x.velocity;
+    }
+    if (!notes.length) return null;
+    const mean = all / notes.length;
+    return { grid: grid ?? '1/16', notes: notes.length,
+      t: sumT.map((v, i) => (cnt[i] ? +(v / cnt[i]).toFixed(3) : 0)),
+      v: sumV.map((v, i) => (cnt[i] ? +(v / cnt[i] / mean).toFixed(3) : 1)) };
+  }
 
-  root.MidiTransform = { setTPB, get TPB() { return TPB; }, MIN, SCALES, gridTicks, snap, quantize, humanize, velocity, length, pitch, time, apply, toScale };
+  // ---- Strum --------------------------------------------------------------------------------------
+  // The notes of each chord (same clip, starting within a 1/64 of each other) start one after
+  // another, `gap` ticks apart on average. Note ends stay where they were.
+  function chords(notes) {
+    const tol = Math.max(1, Math.round(TPB / 16));
+    const idx = notes.map((x, i) => i).sort((i, j) => (notes[i].group < notes[j].group ? -1 : notes[i].group > notes[j].group ? 1 : notes[i].start - notes[j].start));
+    const out = [];
+    let cur = null;
+    for (const i of idx) {
+      const x = notes[i];
+      if (cur && cur.group === x.group && x.start - cur.start <= tol) cur.items.push(i);
+      else { cur = { group: x.group, start: x.start, items: [i] }; out.push(cur); }
+    }
+    return out;
+  }
+  function strum(notes, o) {
+    const out = notes.map((x) => ({ ...x }));
+    const gap = Math.max(0, o.gap ?? 0), p = 2 ** (Math.abs(o.curve ?? 0) / 50), fade = (o.fade ?? 0) / 100;
+    let k = 0;
+    for (const c of chords(notes)) {
+      if (c.items.length < 2) continue;
+      const down = o.dir === 'down' || (o.dir === 'alt' && k % 2 === 1);
+      k++;
+      const order = [...c.items].sort((i, j) => (down ? notes[j].pitch - notes[i].pitch : notes[i].pitch - notes[j].pitch));
+      const m = order.length, total = gap * (m - 1), base = Math.min(...order.map((i) => notes[i].start));
+      order.forEach((i, r) => {
+        let f = r / (m - 1);
+        if (o.curve > 0) f = 1 - (1 - f) ** p; else if (o.curve < 0) f = f ** p;
+        const x = out[i];
+        const start = Math.round(base + total * f);
+        x.stop = Math.max(start + MIN(), x.stop);
+        x.start = start;
+        x.velocity = clamp(Math.round(x.velocity * (1 + fade * f)), 1, 127);
+      });
+    }
+    return out;
+  }
+
+  // ---- Chop, flam, glue -----------------------------------------------------------------------------
+  function chop(notes, o) {
+    if (o.mode === 'flam') {
+      const off = Math.max(MIN(), o.off ?? TPB / 16), count = clamp(o.count ?? 1, 1, 4), gv = clamp(o.graceVel ?? 60, 1, 100) / 100;
+      const out = [];
+      for (const x of notes) {
+        for (let k = count; k >= 1; k--) {
+          const start = x.start - off * k;
+          if (start < 0) continue;
+          out.push({ ...x, start, stop: start + Math.max(MIN(), Math.round(off * 0.8)), velocity: clamp(Math.round(x.velocity * gv * (1 - (k - 1) * 0.12)), 1, 127) });
+        }
+        out.push({ ...x });
+      }
+      return out;
+    }
+    if (o.mode === 'glue') {
+      const gap = Math.max(0, o.gap ?? 0);
+      const by = new Map();
+      notes.forEach((x, i) => { const key = `${x.group}:${x.pitch}`; if (!by.has(key)) by.set(key, []); by.get(key).push(i); });
+      const keep = new Array(notes.length).fill(true), out = notes.map((x) => ({ ...x }));
+      for (const list of by.values()) {
+        list.sort((i, j) => notes[i].start - notes[j].start);
+        let head = list[0];
+        for (const i of list.slice(1)) {
+          if (notes[i].start - out[head].stop <= gap && notes[i].start >= out[head].start) { out[head].stop = Math.max(out[head].stop, notes[i].stop); keep[i] = false; }
+          else head = i;
+        }
+      }
+      return out.filter((x, i) => keep[i]);
+    }
+    // Chop: every note becomes repeats of one grid step, each `gate`% of the step long.
+    const g = gridTicks(o.grid ?? '1/16', o.feel ?? 'n'), gate = clamp(o.gate ?? 90, 10, 100) / 100, fade = (o.fade ?? 0) / 100;
+    const out = [];
+    for (const x of notes) {
+      const pieces = Math.max(1, Math.ceil((x.stop - x.start) / g - 0.01));
+      for (let k = 0; k < pieces; k++) {
+        const start = x.start + k * g;
+        const stop = Math.min(x.stop, start + Math.max(MIN(), Math.round(g * gate)));
+        if (stop <= start) break;
+        const f = pieces > 1 ? k / (pieces - 1) : 0;
+        out.push({ ...x, start, stop, velocity: clamp(Math.round(x.velocity * (1 + fade * f)), 1, 127) });
+      }
+    }
+    return out;
+  }
+
+  const apply = (kind, notes, o) => ({ quantize, humanize, velocity, length, pitch, time, groove, strum, chop })[kind](notes, o);
+
+  root.MidiTransform = { setTPB, get TPB() { return TPB; }, MIN, SCALES, gridTicks, snap, quantize, humanize, velocity, length, pitch, time, groove, strum, chop, captureGroove, GROOVES, apply, toScale };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.1.0 — 2026-11-25
+
+- **Groove:** MPC swing (50–75%), shuffle, funk 16, house, push and laid-back templates on 1/8 or
+  1/16, with quantize, timing and velocity amounts. **Mine** captures the feel of the selected
+  notes and applies it to others.
+- **Strum:** chords played one note after another, low to high, high to low or alternating, with
+  spread, curve and velocity fade.
+- **Chop:** chop notes into grid repeats (gate, velocity fade), add flams and ruffs (one to four
+  grace notes), or glue repeated notes of the same pitch.
+- **Pitch:** new Fit range mode, which moves notes by octaves into a range.
+- Wider window (1000 × 640) for the nine tools.
+
 ## 1.0.0 — 2026-11-24
 
 - First release: six tools for the MIDI notes selected in LUNA, or every note in a selected
