@@ -7,7 +7,7 @@
 (() => {
   const $ = (id) => document.getElementById(id);
   const T = window.MidiTransform;
-  const VERSION = '1.1.0';
+  const VERSION = '1.1.1';
   const KEY = 'com.fedetrillo.miditransform.';
   const store = {
     get: (k) => { try { return JSON.parse(localStorage.getItem(KEY + k)); } catch { return null; } },
@@ -70,6 +70,10 @@
   if (!I18N[lang]) lang = 'en';
   const t = (k, v = {}) => String(I18N[lang][k] ?? I18N.en[k] ?? k).replace(/\{(\w+)\}/g, (m, x) => (x in v ? String(v[x]) : m));
   const COLORS = ['yellow', 'orange', 'red', 'green', 'blue', 'pink', 'purple'];
+
+  // The guide: its texts, in every language.
+  for (const [c, v] of Object.entries({"en": {"help": "Quick guide", "helpBtn": "Guide", "tNext": "Next", "tBack": "Back", "tSkip": "Skip", "tDone": "Got it", "langT": "Choose your language", "langX": "The guide and the whole window will use it. You can change it later here, at the top right.", "zt": "Always at hand", "z": "Open this guide again whenever you need it with the Guide button.", "q1t": "What you transform", "q1": "Select MIDI notes in LUNA: in the editor, or a range over MIDI clips on one or more tracks. Here you see what is selected.", "q2t": "Pick a tool", "q2": "Quantize, Humanize, Velocity, Length, Pitch, Time, Groove, Strum or Chop: one tab each.", "q3t": "Adjust it", "q3": "The settings of the tool you picked. Every change shows at once in the preview, without touching the session.", "q4t": "Before and after", "q4": "Your notes as they are and as they will be, so you can judge it before applying.", "q5t": "Apply", "q5": "Apply (or Enter) writes it to LUNA in one undo step; Undo takes it back. Reset puts this tool’s settings back to default."}, "es": {"help": "Guía rápida", "helpBtn": "Guía", "tNext": "Siguiente", "tBack": "Atrás", "tSkip": "Saltar", "tDone": "Entendido", "langT": "Elige tu idioma", "langX": "La guía y toda la ventana lo usarán. Puedes cambiarlo luego aquí, arriba a la derecha.", "zt": "Siempre a mano", "z": "Vuelve a esta guía cuando la necesites con el botón Guía.", "q1t": "Qué vas a transformar", "q1": "Selecciona notas MIDI en LUNA: en el editor, o un rango sobre clips MIDI de una o varias pistas. Aquí ves lo que hay seleccionado.", "q2t": "Elige una herramienta", "q2": "Cuantizar, Humanizar, Velocidad, Duración, Altura, Tiempo, Groove, Rasgueo o Trocear: una pestaña cada una.", "q3t": "Ajústala", "q3": "Los ajustes de la herramienta elegida. Cada cambio se ve al momento en la previsualización, sin tocar la sesión.", "q4t": "Antes y después", "q4": "Tus notas como están y como quedarán, para que lo juzgues antes de aplicar.", "q5t": "Aplica", "q5": "Aplicar (o Enter) lo escribe en LUNA en un solo paso de deshacer; Deshacer lo quita. Restablecer devuelve los ajustes de esta herramienta a los de fábrica."}, "ca": {"help": "Guia ràpida", "helpBtn": "Guia", "tNext": "Següent", "tBack": "Enrere", "tSkip": "Saltar", "tDone": "Entesos", "langT": "Tria el teu idioma", "langX": "La guia i tota la finestra el faran servir. El pots canviar després aquí, a dalt a la dreta.", "zt": "Sempre a mà", "z": "Torna a aquesta guia quan la necessitis amb el botó Guia.", "q1t": "Què transformaràs", "q1": "Selecciona notes MIDI a LUNA: a l’editor, o un rang sobre clips MIDI d’una o diverses pistes. Aquí veus el que hi ha seleccionat.", "q2t": "Tria una eina", "q2": "Quantitzar, Humanitzar, Velocitat, Durada, Altura, Temps, Groove, Rasguejat o Trossejar: una pestanya cadascuna.", "q3t": "Ajusta-la", "q3": "Els ajustos de l’eina triada. Cada canvi es veu a l’instant a la previsualització, sense tocar la sessió.", "q4t": "Abans i després", "q4": "Les teves notes com són i com quedaran, perquè ho jutgis abans d’aplicar.", "q5t": "Aplica", "q5": "Aplicar (o Enter) ho escriu a LUNA en un sol pas de desfer; Desfer ho treu. Restablir torna els ajustos d’aquesta eina als de fàbrica."}, "fr": {"help": "Guide rapide", "helpBtn": "Guide", "tNext": "Suivant", "tBack": "Retour", "tSkip": "Passer", "tDone": "Compris", "langT": "Choisissez votre langue", "langX": "Le guide et toute la fenêtre l’utiliseront. Vous pourrez la changer ici, en haut à droite.", "zt": "Toujours à portée", "z": "Rouvrez ce guide quand vous voulez avec le bouton Guide.", "q1t": "Ce que vous transformez", "q1": "Sélectionnez des notes MIDI dans LUNA : dans l’éditeur, ou une plage sur des clips MIDI d’une ou plusieurs pistes. Ici, vous voyez ce qui est sélectionné.", "q2t": "Choisissez un outil", "q2": "Quantifier, Humaniser, Vélocité, Durée, Hauteur, Temps, Groove, Strum ou Découper : un onglet chacun.", "q3t": "Réglez-le", "q3": "Les réglages de l’outil choisi. Chaque changement apparaît aussitôt dans l’aperçu, sans toucher à la session.", "q4t": "Avant et après", "q4": "Vos notes telles qu’elles sont et telles qu’elles seront, pour juger avant d’appliquer.", "q5t": "Appliquez", "q5": "Appliquer (ou Entrée) l’écrit dans LUNA en une seule étape d’annulation ; Annuler la retire. Réinitialiser remet les réglages de cet outil par défaut."}, "de": {"help": "Kurzanleitung", "helpBtn": "Anleitung", "tNext": "Weiter", "tBack": "Zurück", "tSkip": "Überspringen", "tDone": "Verstanden", "langT": "Wähle deine Sprache", "langX": "Die Anleitung und das ganze Fenster verwenden sie. Du kannst sie später hier oben rechts ändern.", "zt": "Immer zur Hand", "z": "Öffne diese Anleitung jederzeit wieder mit dem Button Anleitung.", "q1t": "Was du bearbeitest", "q1": "Wähle MIDI-Noten in LUNA aus: im Editor oder einen Bereich über MIDI-Clips auf einer oder mehreren Spuren. Hier siehst du, was ausgewählt ist.", "q2t": "Wähle ein Werkzeug", "q2": "Quantisieren, Humanisieren, Velocity, Länge, Tonhöhe, Zeit, Groove, Strum oder Zerhacken: je ein Tab.", "q3t": "Stell es ein", "q3": "Die Einstellungen des gewählten Werkzeugs. Jede Änderung erscheint sofort in der Vorschau, ohne die Session zu verändern.", "q4t": "Vorher und nachher", "q4": "Deine Noten, wie sie sind und wie sie werden, damit du vor dem Anwenden urteilen kannst.", "q5t": "Anwenden", "q5": "Anwenden (oder Enter) schreibt es in einem Rückgängig-Schritt in LUNA; Rückgängig nimmt es zurück. Zurücksetzen stellt die Einstellungen dieses Werkzeugs zurück."}, "it": {"help": "Guida rapida", "helpBtn": "Guida", "tNext": "Avanti", "tBack": "Indietro", "tSkip": "Salta", "tDone": "Capito", "langT": "Scegli la tua lingua", "langX": "La guida e tutta la finestra la useranno. Puoi cambiarla poi qui, in alto a destra.", "zt": "Sempre a portata di mano", "z": "Riapri questa guida quando ti serve con il pulsante Guida.", "q1t": "Cosa trasformi", "q1": "Seleziona delle note MIDI in LUNA: nell’editor, o un intervallo su clip MIDI di una o più tracce. Qui vedi cosa è selezionato.", "q2t": "Scegli uno strumento", "q2": "Quantizza, Umanizza, Velocity, Durata, Altezza, Tempo, Groove, Strum o Spezza: una scheda ciascuno.", "q3t": "Regolalo", "q3": "Le impostazioni dello strumento scelto. Ogni modifica si vede subito nell’anteprima, senza toccare la sessione.", "q4t": "Prima e dopo", "q4": "Le tue note come sono e come saranno, per giudicare prima di applicare.", "q5t": "Applica", "q5": "Applica (o Invio) lo scrive in LUNA in un solo passo di annullamento; Annulla lo toglie. Ripristina riporta le impostazioni di questo strumento a quelle di fabbrica."}, "pt": {"help": "Guia rápido", "helpBtn": "Guia", "tNext": "Seguinte", "tBack": "Voltar", "tSkip": "Saltar", "tDone": "Percebi", "langT": "Escolhe o teu idioma", "langX": "O guia e toda a janela vão usá-lo. Podes mudá-lo depois aqui, em cima à direita.", "zt": "Sempre à mão", "z": "Volta a este guia quando precisares com o botão Guia.", "q1t": "O que vais transformar", "q1": "Seleciona notas MIDI no LUNA: no editor, ou um intervalo sobre clips MIDI de uma ou várias faixas. Aqui vês o que está selecionado.", "q2t": "Escolhe uma ferramenta", "q2": "Quantizar, Humanizar, Velocidade, Duração, Altura, Tempo, Groove, Rasgueado ou Picar: um separador cada uma.", "q3t": "Ajusta-a", "q3": "As definições da ferramenta escolhida. Cada mudança aparece logo na pré-visualização, sem mexer na sessão.", "q4t": "Antes e depois", "q4": "As tuas notas como estão e como vão ficar, para avaliares antes de aplicar.", "q5t": "Aplica", "q5": "Aplicar (ou Enter) escreve-o no LUNA num só passo de desfazer; Desfazer retira-o. Repor volta às definições de fábrica desta ferramenta."}})) Object.assign(I18N[c], v);
+  let tour = null;
   let theme = store.get('theme') === 'grey' ? 'grey' : 'dark';
   let color = COLORS.includes(store.get('color')) ? store.get('color') : 'green';
   let statusTimer;
@@ -306,7 +310,7 @@
     $('lang').replaceChildren(...Object.keys(I18N).map((c) => Object.assign(document.createElement('option'), { value: c, textContent: I18N[c]._name })));
     $('lang').value = lang;
     for (const [id, name] of [['tDark', 'dark'], ['tGrey', 'grey']]) { $(id).classList.toggle('on', theme === name); $(id).title = t(name); }
-    $('colorBtn').title = t('color'); $('colorBtn').setAttribute('aria-label', t('color'));
+    $('colorBtn').title = t('color'); $('help').title = t('help'); { const q = document.createElement('b'); q.textContent = '?'; const sp = document.createElement('span'); sp.textContent = t('helpBtn'); $('help').replaceChildren(q, sp); } $('colorBtn').setAttribute('aria-label', t('color'));
     $('colorMenu').replaceChildren(...COLORS.map((c) => {
       const b = document.createElement('button');
       b.className = c === color ? 'on' : '';
@@ -595,7 +599,26 @@
       const text = JSON.stringify({ version: VERSION, kind, opts, target: { fromNotes, clips: jobs.map((j) => ({ track: j.track.name.value, clip: j.clip.name?.value, notes: j.notes.length })) }, log }, null, 2);
       try { await navigator.clipboard.writeText(text); say('report', {}, 'ok', 2500); } catch { /* nothing */ }
     };
-    document.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' && !ev.target.closest?.('select, input')) { ev.preventDefault(); void apply(); } });
+    document.addEventListener('keydown', (ev) => { if (tour?.active) return; if (ev.key === 'Enter' && !ev.target.closest?.('select, input')) { ev.preventDefault(); void apply(); } });
+    tour ??= window.AddOnTour?.attach({
+      button: $('help'), key: `${KEY}tourSeen`,
+      labels: () => ({ next: t('tNext'), back: t('tBack'), skip: t('tSkip'), done: t('tDone') }),
+      language: {
+        sel: '#lang',
+        list: () => Object.keys(I18N).map((c) => [c, I18N[c]._name]),
+        current: () => lang,
+        set: (c) => { lang = c; store.set('lang', c); paintStatic(); },
+        title: () => t('langT'), text: () => t('langX'),
+      },
+      steps: () => [
+        { sel: '#target', title: () => t('q1t'), text: () => t('q1') },
+        { sel: '#tabs', title: () => t('q2t'), text: () => t('q2') },
+        { sel: '#params', title: () => t('q3t'), text: () => t('q3') },
+        { sel: '#preview', title: () => t('q4t'), text: () => t('q4') },
+        { sel: '.actions', title: () => t('q5t'), text: () => t('q5') },
+        { sel: '#help', title: () => t('zt'), text: () => t('z') },
+      ],
+    });
     await refresh();
   }
 

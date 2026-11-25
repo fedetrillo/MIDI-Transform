@@ -52,6 +52,9 @@ watch the preview, and press Apply: one undo step, and the notes stay selected f
 2. In **MIDI Transform**, pick a tool and adjust it while you watch the preview.
 3. Press **Apply** (or Enter). Undo with Cmd+Z in LUNA or the **Undo** button.
 
+The first time it opens, it asks for your language and then a short guide walks you through the
+window in it; the **Guide** button brings it back whenever you need it.
+
 ## Support
 
 If something does not work as expected, Alt-click the version number at the top of the window:

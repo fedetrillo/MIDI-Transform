@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1 — 2026-11-25
+
+- A short getting-started guide: the first time it opens it asks for your language, then walks
+  you through the window in it. The **Guide** button brings it back.
+
 ## 1.1.0 — 2026-11-25
 
 - **Groove:** MPC swing (50–75%), shuffle, funk 16, house, push and laid-back templates on 1/8 or
