@@ -1,8 +1,7 @@
 # MIDI Transform for LUNA
 
-Quantize, groove, humanize, strum, velocity, length, pitch, chop and time tools for the MIDI
-notes you select in LUNA, with a before and after preview. Pick a tool, adjust it while you
-watch the preview, and press Apply: one undo step, and the notes stay selected for the next tool.
+Fix and shape the MIDI notes you select in LUNA, with a before and after preview: quantize,
+groove, humanize, strum, velocity, length, pitch, chop and time tools in one window.
 
 <p>
   <img src="docs/screenshot-dark.png" alt="MIDI Transform, dark theme" width="460">

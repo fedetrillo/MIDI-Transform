@@ -7,7 +7,7 @@
 (() => {
   const $ = (id) => document.getElementById(id);
   const T = window.MidiTransform;
-  const VERSION = '1.1.1';
+  const VERSION = '1.1.2';
   const KEY = 'com.fedetrillo.miditransform.';
   const store = {
     get: (k) => { try { return JSON.parse(localStorage.getItem(KEY + k)); } catch { return null; } },
@@ -597,7 +597,7 @@
     $('ver').onclick = async (ev) => {
       if (!ev.altKey) return;
       const text = JSON.stringify({ version: VERSION, kind, opts, target: { fromNotes, clips: jobs.map((j) => ({ track: j.track.name.value, clip: j.clip.name?.value, notes: j.notes.length })) }, log }, null, 2);
-      try { await navigator.clipboard.writeText(text); say('report', {}, 'ok', 2500); } catch { /* nothing */ }
+      try { if (await AddOnCopy(text)) say('report', {}, 'ok', 5000); } catch { /* nothing */ }
     };
     document.addEventListener('keydown', (ev) => { if (tour?.active) return; if (ev.key === 'Enter' && !ev.target.closest?.('select, input')) { ev.preventDefault(); void apply(); } });
     tour ??= window.AddOnTour?.attach({
